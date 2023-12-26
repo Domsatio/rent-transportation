@@ -1,6 +1,7 @@
 // import type { NextApiRequest, NextApiResponse } from "next"
 import NextAuth from 'next-auth';
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import db from '@/libs/prisma';
 import bcrypt from 'bcrypt';
@@ -9,6 +10,21 @@ import { existingUser } from '@/controllers/userController';
 export const authOptions = {
   adapter: PrismaAdapter(db),
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          role: 'user',
+        }
+      },
+      style: { logo: "/google.svg", bg: "#fff", text: "#000" },
+    },
+    ),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -30,9 +46,16 @@ export const authOptions = {
       },
     }),
   ],
-  pages: {
-    signIn: '/sign-in'
-  },
+  // pages: {
+  //   signIn: async (req) => {
+  //     // Check if the path starts with /admin
+  //     if (req.url.startsWith('/admin')) {
+  //       return '/admin/sign-in';
+  //     }
+  //     // Default signIn page
+  //     return '/sign-in';
+  //   },
+  // },
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60,

@@ -15,11 +15,11 @@ export default function App({
     router.pathname.includes("/admin")
   )
     return (
-      // <Provider store={store}>
-      <ThemeProvider>
-        <Component {...pageProps} />
-      </ThemeProvider>
-      // </Provider>
+      <SessionProvider session={session}>
+        <ThemeProvider>
+          <Component {...pageProps} />
+        </ThemeProvider>
+      </SessionProvider>
     );
   return (
     <SessionProvider session={session}>

@@ -1,36 +1,28 @@
-// import { withAuth } from 'next-auth/middleware'
-// import { authOptions } from "./pages/api/auth/[...nextauth]";
-
-import { withAuth } from "next-auth/middleware"
+import { withAuth } from 'next-auth/middleware';
 
 export default withAuth(
-  // `withAuth` augments your `Request` with the user's token.
-  function middleware(req, res, next) {
-    const excludedRoutes = ['/admin/sign-in', '/sign-up', '/sign-in', '/forgot-password', '/reset-password', '/profile'];
-    if (excludedRoutes.includes(req.nextUrl.pathname)) {
-      return next();
+  async function middleware(req, res, next) {
+    if (req.nextUrl.pathname.startsWith('/admin') && !req.token) {
+      return NextResponse.redirect(new URL('/admin/sign-in', req.url));
     }
-
-    // Your authentication logic goes here
-    if (!req.token?.role) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    // Authorized, continue to the next middleware or route handler
-    return next();
+    // return next();
   },
   {
     callbacks: {
-      // authorized: ({ token }) => token?.role === "admin",
-      // authorized: ({ token, req }) => {
-      //   if(req.nextUrl.pathname.startsWith('/admin')) {
-      //     return token?.role === "admin"
-      //   }else if(req.nextUrl == '/profile') {
-      //     return token?.role === "user"
-      //   }
-      // }
+      authorized: ({ token, req }) => {
+        if (req.nextUrl.pathname.startsWith('/admin')) {
+          return token?.role === 'admin';
+        } else if (req.nextUrl.pathname === '/profile') {
+          return token?.role === 'user';
+        }
+        return false;
+      },
     },
   }
-)
+);
 
-export const config = { api: { bodyParser: false } };
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sign-in|register|admin/sign-in|img|$).*)',
+  ],
+};
